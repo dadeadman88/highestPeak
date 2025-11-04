@@ -26,8 +26,32 @@ const WebLink = () => {
   const injectedJS = `
     (function() {
       function hideHeader() {
+        // First, aggressively target div[data-elementor-type="header"] specifically
+        var headerDivs = document.querySelectorAll('div[data-elementor-type="header"]');
+        headerDivs.forEach(function(element) {
+          element.style.setProperty('display', 'none', 'important');
+          element.style.setProperty('visibility', 'hidden', 'important');
+          element.style.setProperty('opacity', '0', 'important');
+          element.style.setProperty('height', '0', 'important');
+          element.style.setProperty('min-height', '0', 'important');
+          element.style.setProperty('max-height', '0', 'important');
+          element.style.setProperty('overflow', 'hidden', 'important');
+          element.style.setProperty('margin', '0', 'important');
+          element.style.setProperty('padding', '0', 'important');
+          // Also hide parent elements that might contain the header
+          var parent = element.parentElement;
+          if (parent && (parent.getAttribute('data-elementor-type') === 'header' || parent.classList.contains('elementor-location-header'))) {
+            parent.style.setProperty('display', 'none', 'important');
+            parent.style.setProperty('visibility', 'hidden', 'important');
+            parent.style.setProperty('opacity', '0', 'important');
+            parent.style.setProperty('height', '0', 'important');
+            parent.style.setProperty('overflow', 'hidden', 'important');
+          }
+        });
+        
         var selectors = [
           'div[data-elementor-type="header"]',
+          '[data-elementor-type="header"]',
           '.elementor-location-header',
           'header.elementor-location-header',
           '.elementor-header',
@@ -104,18 +128,59 @@ const WebLink = () => {
           dataIdDiv3.style.setProperty('overflow', 'hidden', 'important');
         }
         
+        var dataIdDiv4 = document.querySelector('[data-id="2f98153a"]');
+        if (dataIdDiv4) {
+          dataIdDiv4.style.setProperty('display', 'none', 'important');
+          dataIdDiv4.style.setProperty('visibility', 'hidden', 'important');
+          dataIdDiv4.style.setProperty('opacity', '0', 'important');
+          dataIdDiv4.style.setProperty('height', '0', 'important');
+          dataIdDiv4.style.setProperty('min-height', '0', 'important');
+          dataIdDiv4.style.setProperty('max-height', '0', 'important');
+          dataIdDiv4.style.setProperty('overflow', 'hidden', 'important');
+          dataIdDiv4.style.setProperty('margin', '0', 'important');
+          dataIdDiv4.style.setProperty('padding', '0', 'important');
+        }
+        
+        var dataIdDiv5 = document.querySelector('[data-id="6ff245"]');
+        if (dataIdDiv5) {
+          dataIdDiv5.style.setProperty('display', 'none', 'important');
+          dataIdDiv5.style.setProperty('visibility', 'hidden', 'important');
+          dataIdDiv5.style.setProperty('opacity', '0', 'important');
+          dataIdDiv5.style.setProperty('height', '0', 'important');
+          dataIdDiv5.style.setProperty('min-height', '0', 'important');
+          dataIdDiv5.style.setProperty('max-height', '0', 'important');
+          dataIdDiv5.style.setProperty('overflow', 'hidden', 'important');
+          dataIdDiv5.style.setProperty('margin', '0', 'important');
+          dataIdDiv5.style.setProperty('padding', '0', 'important');
+        }
+        
+        var dataIdDiv6 = document.querySelector('[data-id="78a9e717"]');
+        if (dataIdDiv6) {
+          dataIdDiv6.style.setProperty('display', 'none', 'important');
+          dataIdDiv6.style.setProperty('visibility', 'hidden', 'important');
+          dataIdDiv6.style.setProperty('opacity', '0', 'important');
+          dataIdDiv6.style.setProperty('height', '0', 'important');
+          dataIdDiv6.style.setProperty('min-height', '0', 'important');
+          dataIdDiv6.style.setProperty('max-height', '0', 'important');
+          dataIdDiv6.style.setProperty('overflow', 'hidden', 'important');
+          dataIdDiv6.style.setProperty('margin', '0', 'important');
+          dataIdDiv6.style.setProperty('padding', '0', 'important');
+        }
+        
         var hiddenCount = 0;
-        var foundElements = [];
         
         selectors.forEach(function(selector) {
           var elements = document.querySelectorAll(selector);
           elements.forEach(function(element) {
-            foundElements.push(selector + ': ' + element.tagName + '.' + element.className);
             element.style.setProperty('display', 'none', 'important');
             element.style.setProperty('visibility', 'hidden', 'important');
             element.style.setProperty('opacity', '0', 'important');
             element.style.setProperty('height', '0', 'important');
+            element.style.setProperty('min-height', '0', 'important');
+            element.style.setProperty('max-height', '0', 'important');
             element.style.setProperty('overflow', 'hidden', 'important');
+            element.style.setProperty('margin', '0', 'important');
+            element.style.setProperty('padding', '0', 'important');
             hiddenCount++;
           });
         });
@@ -139,11 +204,16 @@ const WebLink = () => {
       }
       window.addEventListener('load', hideHeader);
 
-      // Observe DOM mutations (SPA/content loads)
+      // Observe DOM mutations (SPA/content loads) - keep observer running longer
       try {
         var observer = new MutationObserver(function(){ hideHeader(); });
-        observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
-        setTimeout(function(){ observer.disconnect(); }, 30000);
+        observer.observe(document.documentElement || document.body, { 
+          childList: true, 
+          subtree: true, 
+          attributes: true,
+          attributeFilter: ['style', 'class']
+        });
+        setTimeout(function(){ observer.disconnect(); }, 60000);
       } catch (e) {}
 
       // Hook history API for SPA navigations
@@ -171,7 +241,12 @@ const WebLink = () => {
         }, { passive: true });
         document.addEventListener('selectstart', function(e) { e.preventDefault(); return false; });
         var style = document.createElement('style');
-        style.textContent = '\n          * { -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; -webkit-tap-highlight-color: transparent !important; }\n          a, button { -webkit-touch-callout: none !important; -webkit-user-select: none !important; -webkit-tap-highlight-color: transparent !important; }\n+          div[data-elementor-type="header"], .elementor-location-header, header.elementor-location-header, .elementor-header, header[data-elementor-type="header"], .elementor-section-wrap .elementor-section[data-elementor-type="header"], .elementor-section[data-elementor-type="header"], .elementor-location-header .elementor-section-wrap, .site-header, header.site-header, .header-wrapper, .main-header, [data-elementor-type="footer"], .elementor-location-footer, footer.site-footer, .site-footer, footer, #colophon { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important; }\n        ';
+        style.id = 'header-hider-style';
+        style.textContent = 'div[data-elementor-type="header"], [data-elementor-type="header"], .elementor-location-header, header.elementor-location-header, .elementor-header, header[data-elementor-type="header"], .elementor-section-wrap .elementor-section[data-elementor-type="header"], .elementor-section[data-elementor-type="header"], .elementor-location-header .elementor-section-wrap, .site-header, header.site-header, .header-wrapper, .main-header, [data-elementor-type="footer"], .elementor-location-footer, footer.site-footer, .site-footer, footer, #colophon { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; min-height: 0 !important; max-height: 0 !important; overflow: hidden !important; margin: 0 !important; padding: 0 !important; } * { -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; -webkit-tap-highlight-color: transparent !important; } a, button { -webkit-touch-callout: none !important; -webkit-user-select: none !important; -webkit-tap-highlight-color: transparent !important; }';
+        var existingStyle = document.getElementById('header-hider-style');
+        if (existingStyle) {
+          existingStyle.remove();
+        }
         document.head.appendChild(style);
       }
       disableLongPressPreview();
@@ -184,7 +259,7 @@ const WebLink = () => {
       <View style={{ flex: 1, paddingHorizontal: 15, backgroundColor: "#fff" }}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Image source={IMAGES.leftIconWithColor} style={{ width: 24, height: 24 }} />
+            <Image source={IMAGES.leftIconWithColor} style={{ width: 24, height: 24, top: -15 }} />
           </TouchableOpacity>
           <Image source={IMAGES.loginLogo} style={styles.logo} resizeMode="contain" />
         </View>

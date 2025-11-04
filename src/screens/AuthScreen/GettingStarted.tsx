@@ -17,7 +17,7 @@ const slides = [
       "https://highestpeakclothingandapparel.com/wp-content/uploads/2025/07/image-2025-07-29T005503.455.png",
     title: "Let’s be fashionable with HP Clothing & Apparel",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor adipiscing elit, sed do eiusmod tem",
+      "Discover premium fashion essentials without exceeding your budget.",
   },
   {
     id: 2,

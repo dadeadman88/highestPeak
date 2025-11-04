@@ -9,9 +9,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { View } from "react-native-ui-lib";
-import { useSelector } from "react-redux";
-import Swiper from "react-native-swiper";
-import { ScrollView } from "react-native-gesture-handler";
 import { WebView } from "react-native-webview";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
@@ -121,6 +118,17 @@ const Booking = ({ url = 'https://highestpeakclothingandapparel.com/shop' }: Boo
           dataIdDiv3.style.setProperty('height', '0', 'important');
           dataIdDiv3.style.setProperty('overflow', 'hidden', 'important');
           console.log('Div with data-id="31c72849" hidden successfully');
+        }
+        
+        // Hide div with fourth specific data-id
+        var dataIdDiv4 = document.querySelector('[data-id="2f98153a"]');
+        if (dataIdDiv4) {
+          dataIdDiv4.style.setProperty('display', 'none', 'important');
+          dataIdDiv4.style.setProperty('visibility', 'hidden', 'important');
+          dataIdDiv4.style.setProperty('opacity', '0', 'important');
+          dataIdDiv4.style.setProperty('height', '0', 'important');
+          dataIdDiv4.style.setProperty('overflow', 'hidden', 'important');
+          console.log('Div with data-id="2f98153a" hidden successfully');
         }
         
         var hiddenCount = 0;
@@ -340,31 +348,142 @@ const Booking = ({ url = 'https://highestpeakclothingandapparel.com/shop' }: Boo
         console.log('Shop link clicked - navigating to booking screen:', this.href);
       }
       
+      // Function to handle cat-item link clicks and navigate to WebLink screen
+      function handleCatItemNavigation() {
+        console.log('Starting cat-item link detection...');
+        
+        // Find all list items with class cat-item
+        var catItemListItems = document.querySelectorAll('li.cat-item');
+        console.log('Found ' + catItemListItems.length + ' cat-item list items');
+        
+        // Find anchor tags inside those list items
+        var catItemLinks = [];
+        catItemListItems.forEach(function(li) {
+          var anchor = li.querySelector('a');
+          if (anchor) {
+            catItemLinks.push(anchor);
+          }
+        });
+        
+        console.log('Found ' + catItemLinks.length + ' cat-item links inside list items');
+        
+        // Log all found links for debugging
+        catItemLinks.forEach(function(link, index) {
+          console.log('Cat-item link ' + (index + 1) + ':', link.href, 'Parent LI classes:', link.parentElement ? link.parentElement.className : 'none');
+        });
+        
+        if (catItemLinks.length > 0) {
+          catItemLinks.forEach(function(link) {
+            // Remove any existing listeners to avoid duplicates
+            link.removeEventListener('click', handleCatItemClick);
+            link.addEventListener('click', handleCatItemClick);
+          });
+          console.log('Cat-item links click handlers attached to ' + catItemLinks.length + ' links');
+        } else {
+          console.log('No cat-item links found');
+        }
+        
+        // Also handle any dynamically added links
+        var catItemObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newCatItemLinks = [];
+                
+                // Check if node itself is a cat-item list item
+                if (node.matches && node.matches('li.cat-item')) {
+                  var anchor = node.querySelector('a');
+                  if (anchor) {
+                    newCatItemLinks.push(anchor);
+                  }
+                }
+                
+                // Check if node has cat-item class and is a list item
+                if (node.classList && node.classList.contains('cat-item') && node.tagName === 'LI') {
+                  var anchor = node.querySelector('a');
+                  if (anchor) {
+                    newCatItemLinks.push(anchor);
+                  }
+                }
+                
+                // Find cat-item list items within the node and get their anchors
+                if (node.querySelectorAll) {
+                  var nestedListItems = node.querySelectorAll('li.cat-item');
+                  nestedListItems.forEach(function(li) {
+                    var anchor = li.querySelector('a');
+                    if (anchor) {
+                      newCatItemLinks.push(anchor);
+                    }
+                  });
+                }
+                
+                newCatItemLinks.forEach(function(link) {
+                  link.removeEventListener('click', handleCatItemClick);
+                  link.addEventListener('click', handleCatItemClick);
+                  console.log('Dynamic cat-item link added:', link.href);
+                });
+              }
+            });
+          });
+        });
+        
+        catItemObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
+      // Separate function for handling cat-item clicks
+      function handleCatItemClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        var href = this.href || this.getAttribute('href');
+        if (!href) {
+          console.log('Cat-item link has no href');
+          return;
+        }
+        
+        // Send message to React Native app to navigate to WebLink screen with URL
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'navigate',
+            screen: 'weblink',
+            url: href
+          }));
+        }
+        console.log('Cat-item link clicked - navigating to WebLink screen with URL:', href);
+      }
+      
       // Run functions immediately and on DOM ready
       disableLongPressPreview();
       handleButtonNavigation();
+      handleCatItemNavigation();
       
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
           disableLongPressPreview();
           handleButtonNavigation();
+          handleCatItemNavigation();
         });
       }
       
       window.addEventListener('load', function() {
         disableLongPressPreview();
         handleButtonNavigation();
+        handleCatItemNavigation();
       });
       
       // Also run detection periodically to catch late-loading links
       var detectionInterval = setInterval(function() {
         handleButtonNavigation();
+        handleCatItemNavigation();
       }, 2000); // Check every 2 seconds
       
       // Stop checking after 30 seconds
       setTimeout(function() {
         clearInterval(detectionInterval);
-        console.log('Stopped periodic shop link detection');
+        console.log('Stopped periodic link detection');
       }, 30000);
       
       console.log('Header hiding script initialized. Initially hidden: ' + initialHidden + ' elements');
@@ -458,6 +577,13 @@ const Booking = ({ url = 'https://highestpeakclothingandapparel.com/shop' }: Boo
                     break;
                   case 'home':
                     navigation.navigate('Home' as never);
+                    break;
+                  case 'weblink':
+                    if (data.url) {
+                      (navigation as any).navigate('WebLink', { url: data.url });
+                    } else {
+                      console.log('WebLink navigation requested but no URL provided');
+                    }
                     break;
                   default:
                     console.log('Unknown screen:', data.screen);
