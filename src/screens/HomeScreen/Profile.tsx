@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { StyleSheet, Text, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, Image, TouchableOpacity, Linking } from "react-native";
 import { View } from "react-native-ui-lib";
 import SafeAreaContainer from "../../containers/SafeAreaContainer";
 import { WebView } from "react-native-webview";
@@ -13,15 +13,55 @@ interface ProfileProps {
 const Profile = ({ url = 'https://highestpeakclothingandapparel.com/cart' }: ProfileProps) => {
   const webViewRef = useRef<WebView>(null);
   const [currentUrl, setCurrentUrl] = useState<string>(url);
+  const [webViewUrl, setWebViewUrl] = useState<string>(url);
+  const [webViewKey, setWebViewKey] = useState<string>(url);
   const navigation = useNavigation();
 
   // Load URL only when component mounts or URL changes
   useEffect(() => {
+    setWebViewUrl(url);
+    setWebViewKey(`${url}?t=${Date.now()}`);
     if (webViewRef.current) {
       // Reload the WebView only when URL changes or component mounts
       webViewRef.current.reload();
     }
   }, [url]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Profile screen focused - Current WebView URL:', currentUrl);
+      const cartUrl = 'https://highestpeakclothingandapparel.com/cart';
+      
+      // Always update state to cart URL when screen focuses
+      // Use timestamp in key to force complete WebView re-mount
+      const newKey = `${cartUrl}?t=${Date.now()}`;
+      setWebViewUrl(cartUrl);
+      setWebViewKey(newKey);
+      setCurrentUrl(cartUrl);
+      
+      // Use a timeout to ensure WebView is ready, then navigate via JavaScript as backup
+      const timeoutId = setTimeout(() => {
+        if (webViewRef.current) {
+          // Inject JavaScript to navigate to cart page (backup method)
+          const navigationScript = `(function() {
+            var currentHref = window.location.href;
+            var targetUrl = '${cartUrl}';
+            console.log('Checking navigation - Current:', currentHref, 'Target:', targetUrl);
+            if (currentHref !== targetUrl && !currentHref.includes('/cart')) {
+              console.log('Navigating to cart page from:', currentHref);
+              window.location.href = targetUrl;
+            }
+            true;
+          })();`;
+          webViewRef.current.injectJavaScript(navigationScript);
+        }
+      }, 200);
+      
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }, [])
+  );
 
   // Optional: Track when screen comes into focus (without reloading)
   useFocusEffect(
@@ -348,31 +388,105 @@ const Profile = ({ url = 'https://highestpeakclothingandapparel.com/cart' }: Pro
         console.log('Shop link clicked - navigating to booking screen:', this.href);
       }
       
+      // Function to handle privacy policy link clicks
+      function handlePrivacyPolicyNavigation() {
+        console.log('Starting privacy policy link detection...');
+        
+        // Find all links with class woocommerce-privacy-policy-link
+        var privacyLinks = document.querySelectorAll('a.woocommerce-privacy-policy-link');
+        console.log('Found ' + privacyLinks.length + ' privacy policy links');
+        
+        if (privacyLinks.length > 0) {
+          privacyLinks.forEach(function(link) {
+            // Remove any existing listeners to avoid duplicates
+            link.removeEventListener('click', handlePrivacyPolicyClick);
+            link.addEventListener('click', handlePrivacyPolicyClick);
+          });
+          console.log('Privacy policy links click handlers attached to ' + privacyLinks.length + ' links');
+        } else {
+          console.log('No privacy policy links found');
+        }
+        
+        // Also handle any dynamically added links
+        var privacyObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newPrivacyLinks = [];
+                
+                // Check if node itself is a privacy policy link
+                if (node.matches && node.matches('a.woocommerce-privacy-policy-link')) {
+                  newPrivacyLinks.push(node);
+                }
+                
+                // Find privacy policy links within the node
+                if (node.querySelectorAll) {
+                  var nestedLinks = node.querySelectorAll('a.woocommerce-privacy-policy-link');
+                  nestedLinks.forEach(function(link) {
+                    newPrivacyLinks.push(link);
+                  });
+                }
+                
+                newPrivacyLinks.forEach(function(link) {
+                  link.removeEventListener('click', handlePrivacyPolicyClick);
+                  link.addEventListener('click', handlePrivacyPolicyClick);
+                  console.log('Dynamic privacy policy link added:', link.href);
+                });
+              }
+            });
+          });
+        });
+        
+        privacyObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
+      // Separate function for handling privacy policy clicks
+      function handlePrivacyPolicyClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        // Send message to React Native app to open URL in external browser
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'openExternalUrl',
+            url: 'https://highestpeakclothingandapparel.com/privacy-policy-2/'
+          }));
+        }
+        console.log('Privacy policy link clicked - opening in external browser');
+      }
+      
       // Run functions immediately and on DOM ready
       disableLongPressPreview();
       handleButtonNavigation();
+      handlePrivacyPolicyNavigation();
       
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
           disableLongPressPreview();
           handleButtonNavigation();
+          handlePrivacyPolicyNavigation();
         });
       }
       
       window.addEventListener('load', function() {
         disableLongPressPreview();
         handleButtonNavigation();
+        handlePrivacyPolicyNavigation();
       });
       
       // Also run detection periodically to catch late-loading links
       var detectionInterval = setInterval(function() {
         handleButtonNavigation();
+        handlePrivacyPolicyNavigation();
       }, 2000); // Check every 2 seconds
       
       // Stop checking after 30 seconds
       setTimeout(function() {
         clearInterval(detectionInterval);
-        console.log('Stopped periodic shop link detection');
+        console.log('Stopped periodic link detection');
       }, 30000);
       
       console.log('Header hiding script initialized. Initially hidden: ' + initialHidden + ' elements');
@@ -463,9 +577,9 @@ const Profile = ({ url = 'https://highestpeakclothingandapparel.com/cart' }: Pro
 
         {/* WebView with enhanced props for debugging */}
         <WebView
-          key={url} // Force re-render when URL changes
+          key={webViewKey} // Force re-render when URL changes (includes timestamp to force re-mount)
           ref={webViewRef}
-          source={{ uri: url }}
+          source={{ uri: webViewUrl }}
           style={{ flex: 1 }}
           javaScriptEnabled={true}
           domStorageEnabled={true}
@@ -513,6 +627,13 @@ const Profile = ({ url = 'https://highestpeakclothingandapparel.com/cart' }: Pro
                   default:
                     console.log('Unknown screen:', data.screen);
                 }
+              }
+              
+              // Handle external URL opening
+              if (data.type === 'openExternalUrl' && data.url) {
+                Linking.openURL(data.url).catch((err) => {
+                  console.error('Failed to open URL:', err);
+                });
               }
             } catch (error) {
               // Handle non-JSON messages

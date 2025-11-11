@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Linking,
 } from "react-native";
 import { View } from "react-native-ui-lib";
 import { WebView } from "react-native-webview";
@@ -455,16 +456,244 @@ const Booking = ({ url = 'https://highestpeakclothingandapparel.com/shop' }: Boo
         console.log('Cat-item link clicked - navigating to WebLink screen with URL:', href);
       }
       
+      // Function to handle privacy policy link clicks
+      function handlePrivacyPolicyNavigation() {
+        console.log('Starting privacy policy link detection...');
+        
+        // Find all links with class woocommerce-privacy-policy-link
+        var privacyLinks = document.querySelectorAll('a.woocommerce-privacy-policy-link');
+        console.log('Found ' + privacyLinks.length + ' privacy policy links');
+        
+        if (privacyLinks.length > 0) {
+          privacyLinks.forEach(function(link) {
+            // Remove any existing listeners to avoid duplicates
+            link.removeEventListener('click', handlePrivacyPolicyClick);
+            link.addEventListener('click', handlePrivacyPolicyClick);
+          });
+          console.log('Privacy policy links click handlers attached to ' + privacyLinks.length + ' links');
+        } else {
+          console.log('No privacy policy links found');
+        }
+        
+        // Also handle any dynamically added links
+        var privacyObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newPrivacyLinks = [];
+                
+                // Check if node itself is a privacy policy link
+                if (node.matches && node.matches('a.woocommerce-privacy-policy-link')) {
+                  newPrivacyLinks.push(node);
+                }
+                
+                // Find privacy policy links within the node
+                if (node.querySelectorAll) {
+                  var nestedLinks = node.querySelectorAll('a.woocommerce-privacy-policy-link');
+                  nestedLinks.forEach(function(link) {
+                    newPrivacyLinks.push(link);
+                  });
+                }
+                
+                newPrivacyLinks.forEach(function(link) {
+                  link.removeEventListener('click', handlePrivacyPolicyClick);
+                  link.addEventListener('click', handlePrivacyPolicyClick);
+                  console.log('Dynamic privacy policy link added:', link.href);
+                });
+              }
+            });
+          });
+        });
+        
+        privacyObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
+      // Separate function for handling privacy policy clicks
+      function handlePrivacyPolicyClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        // Send message to React Native app to open URL in external browser
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'openExternalUrl',
+            url: 'https://highestpeakclothingandapparel.com/privacy-policy-2/'
+          }));
+        }
+        console.log('Privacy policy link clicked - opening in external browser');
+      }
+      
+      // Function to handle product_type_variable navigation
+      function handleProductTypeVariableNavigation() {
+        console.log('Starting product_type_variable detection...');
+        
+        // Find ALL anchors with product_type_variable class
+        var productLinks = document.querySelectorAll('a.product_type_variable');
+        console.log('Found ' + productLinks.length + ' product_type_variable links initially');
+        
+        // Log all found links for debugging
+        productLinks.forEach(function(link, index) {
+          console.log('Product link ' + (index + 1) + ':', link.href, 'Classes:', link.className);
+        });
+        
+        if (productLinks.length > 0) {
+          productLinks.forEach(function(link) {
+            // Remove any existing listeners to avoid duplicates
+            link.removeEventListener('click', handleProductTypeVariableClick);
+            link.addEventListener('click', handleProductTypeVariableClick);
+          });
+          console.log('Product type variable click handlers attached to ' + productLinks.length + ' links');
+        } else {
+          console.log('No product_type_variable links found');
+        }
+        
+        // Also handle any dynamically added links
+        var productObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newProductLinks = [];
+                
+                // Check if the node itself is a product_type_variable link
+                if (node.classList && node.classList.contains('product_type_variable') && node.tagName === 'A') {
+                  newProductLinks.push(node);
+                }
+                
+                // Check for product_type_variable children
+                if (node.querySelectorAll) {
+                  var children = node.querySelectorAll('a.product_type_variable');
+                  newProductLinks = newProductLinks.concat(Array.from(children));
+                }
+                
+                newProductLinks.forEach(function(link) {
+                  link.removeEventListener('click', handleProductTypeVariableClick);
+                  link.addEventListener('click', handleProductTypeVariableClick);
+                  console.log('Dynamic product_type_variable link added:', link.href);
+                });
+              }
+            });
+          });
+        });
+        
+        productObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
+      // Separate function for handling product_type_variable clicks
+      function handleProductTypeVariableClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        var href = this.href || this.getAttribute('href');
+        console.log('Product type variable clicked - navigating to WebLink with URL:', href);
+        
+        // Send message to React Native app to navigate to WebLink screen with URL
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'navigate',
+            screen: 'weblink',
+            url: href
+          }));
+        }
+      }
+      
+      // Function to handle woocommerce-LoopProduct-link navigation
+      function handleWooCommerceLinkNavigation() {
+        console.log('Starting woocommerce-LoopProduct-link detection...');
+        
+        // Find ALL anchors with woocommerce-LoopProduct-link class
+        var wooCommerceLinks = document.querySelectorAll('a.woocommerce-LoopProduct-link');
+        console.log('Found ' + wooCommerceLinks.length + ' woocommerce-LoopProduct-link links initially');
+        
+        // Log all found links for debugging
+        wooCommerceLinks.forEach(function(link, index) {
+          console.log('WooCommerce link ' + (index + 1) + ':', link.href, 'Classes:', link.className);
+        });
+        
+        if (wooCommerceLinks.length > 0) {
+          wooCommerceLinks.forEach(function(link) {
+            // Remove any existing listeners to avoid duplicates
+            link.removeEventListener('click', handleWooCommerceLinkClick);
+            link.addEventListener('click', handleWooCommerceLinkClick);
+          });
+          console.log('WooCommerce link click handlers attached to ' + wooCommerceLinks.length + ' links');
+        } else {
+          console.log('No woocommerce-LoopProduct-link links found');
+        }
+        
+        // Also handle any dynamically added links
+        var wooCommerceObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newWooCommerceLinks = [];
+                
+                // Check if the node itself is a woocommerce-LoopProduct-link
+                if (node.classList && node.classList.contains('woocommerce-LoopProduct-link') && node.tagName === 'A') {
+                  newWooCommerceLinks.push(node);
+                }
+                
+                // Check for woocommerce-LoopProduct-link children
+                if (node.querySelectorAll) {
+                  var children = node.querySelectorAll('a.woocommerce-LoopProduct-link');
+                  newWooCommerceLinks = newWooCommerceLinks.concat(Array.from(children));
+                }
+                
+                newWooCommerceLinks.forEach(function(link) {
+                  link.removeEventListener('click', handleWooCommerceLinkClick);
+                  link.addEventListener('click', handleWooCommerceLinkClick);
+                  console.log('Dynamic woocommerce-LoopProduct-link added:', link.href);
+                });
+              }
+            });
+          });
+        });
+        
+        wooCommerceObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
+      // Separate function for handling woocommerce-LoopProduct-link clicks
+      function handleWooCommerceLinkClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        var href = this.href || this.getAttribute('href');
+        console.log('WooCommerce link clicked - navigating to WebLink with URL:', href);
+        
+        // Send message to React Native app to navigate to WebLink screen with URL
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'navigate',
+            screen: 'weblink',
+            url: href
+          }));
+        }
+      }
+      
       // Run functions immediately and on DOM ready
       disableLongPressPreview();
       handleButtonNavigation();
       handleCatItemNavigation();
+      handlePrivacyPolicyNavigation();
+      handleProductTypeVariableNavigation();
+      handleWooCommerceLinkNavigation();
       
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
           disableLongPressPreview();
           handleButtonNavigation();
           handleCatItemNavigation();
+          handlePrivacyPolicyNavigation();
+          handleProductTypeVariableNavigation();
+          handleWooCommerceLinkNavigation();
         });
       }
       
@@ -472,12 +701,18 @@ const Booking = ({ url = 'https://highestpeakclothingandapparel.com/shop' }: Boo
         disableLongPressPreview();
         handleButtonNavigation();
         handleCatItemNavigation();
+        handlePrivacyPolicyNavigation();
+        handleProductTypeVariableNavigation();
+        handleWooCommerceLinkNavigation();
       });
       
       // Also run detection periodically to catch late-loading links
       var detectionInterval = setInterval(function() {
         handleButtonNavigation();
         handleCatItemNavigation();
+        handlePrivacyPolicyNavigation();
+        handleProductTypeVariableNavigation();
+        handleWooCommerceLinkNavigation();
       }, 2000); // Check every 2 seconds
       
       // Stop checking after 30 seconds
@@ -588,6 +823,13 @@ const Booking = ({ url = 'https://highestpeakclothingandapparel.com/shop' }: Boo
                   default:
                     console.log('Unknown screen:', data.screen);
                 }
+              }
+              
+              // Handle external URL opening
+              if (data.type === 'openExternalUrl' && data.url) {
+                Linking.openURL(data.url).catch((err) => {
+                  console.error('Failed to open URL:', err);
+                });
               }
             } catch (error) {
               // Handle non-JSON messages

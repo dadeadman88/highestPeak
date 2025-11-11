@@ -127,6 +127,17 @@ const Home_Screen = ({ url = 'https://highestpeakclothingandapparel.com/' }: Hom
           console.log('Div with data-id="31c72849" hidden successfully');
         }
         
+        // Hide div with fourth specific data-id
+        var dataIdDiv4 = document.querySelector('[data-id="9ada4aa"]');
+        if (dataIdDiv4) {
+          dataIdDiv4.style.setProperty('display', 'none', 'important');
+          dataIdDiv4.style.setProperty('visibility', 'hidden', 'important');
+          dataIdDiv4.style.setProperty('opacity', '0', 'important');
+          dataIdDiv4.style.setProperty('height', '0', 'important');
+          dataIdDiv4.style.setProperty('overflow', 'hidden', 'important');
+          console.log('Div with data-id="9ada4aa" hidden successfully');
+        }
+        
         var hiddenCount = 0;
         var foundElements = [];
         
@@ -329,6 +340,72 @@ const Home_Screen = ({ url = 'https://highestpeakclothingandapparel.com/' }: Hom
         });
       }
       
+      // Function to handle elementor-button navigation
+      function handleElementorButtonNavigation() {
+        console.log('Starting elementor-button detection...');
+        
+        // Find ALL anchors with elementor-button class
+        var elementorButtons = document.querySelectorAll('a.elementor-button');
+        console.log('Found ' + elementorButtons.length + ' elementor-button links initially');
+        
+        // Also check for buttons with elementor-button class
+        var elementorButtonButtons = document.querySelectorAll('button.elementor-button, .elementor-button');
+        console.log('Found ' + elementorButtonButtons.length + ' elementor-button elements (including buttons)');
+        
+        // Combine both methods
+        var allElementorButtons = Array.from(new Set([...elementorButtons, ...elementorButtonButtons]));
+        console.log('Total unique elementor-button elements: ' + allElementorButtons.length);
+        
+        // Log all found buttons for debugging
+        allElementorButtons.forEach(function(button, index) {
+          console.log('Elementor button ' + (index + 1) + ':', button.href || button.textContent, 'Classes:', button.className);
+        });
+        
+        if (allElementorButtons.length > 0) {
+          allElementorButtons.forEach(function(button) {
+            // Remove any existing listeners to avoid duplicates
+            button.removeEventListener('click', handleElementorButtonClick);
+            button.addEventListener('click', handleElementorButtonClick);
+          });
+          console.log('Elementor button click handlers attached to ' + allElementorButtons.length + ' elements');
+        } else {
+          console.log('No elementor-button elements found');
+        }
+        
+        // Also handle any dynamically added buttons
+        var elementorObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newElementorButtons = [];
+                
+                // Check if the node itself is an elementor-button
+                if (node.classList && node.classList.contains('elementor-button')) {
+                  newElementorButtons.push(node);
+                }
+                
+                // Check for elementor-button children
+                if (node.querySelectorAll) {
+                  var children = node.querySelectorAll('a.elementor-button, button.elementor-button, .elementor-button');
+                  newElementorButtons = newElementorButtons.concat(Array.from(children));
+                }
+                
+                newElementorButtons.forEach(function(button) {
+                  button.removeEventListener('click', handleElementorButtonClick);
+                  button.addEventListener('click', handleElementorButtonClick);
+                  console.log('Dynamic elementor-button added:', button.href || button.textContent);
+                });
+              }
+            });
+          });
+        });
+        
+        elementorObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
       // Separate function for handling shop clicks
       function handleShopClick(e) {
         e.preventDefault(); // Prevent default link behavior
@@ -344,31 +421,210 @@ const Home_Screen = ({ url = 'https://highestpeakclothingandapparel.com/' }: Hom
         console.log('Shop link clicked - navigating to booking screen:', this.href);
       }
       
+      // Separate function for handling elementor-button clicks
+      function handleElementorButtonClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        // Send message to React Native app to navigate to booking screen
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'navigate',
+            screen: 'booking'
+          }));
+        }
+        console.log('Elementor button clicked - navigating to booking screen:', this.href || this.textContent);
+      }
+      
+      // Function to handle product_type_variable navigation
+      function handleProductTypeVariableNavigation() {
+        console.log('Starting product_type_variable detection...');
+        
+        // Find ALL anchors with product_type_variable class
+        var productLinks = document.querySelectorAll('a.product_type_variable');
+        console.log('Found ' + productLinks.length + ' product_type_variable links initially');
+        
+        // Log all found links for debugging
+        productLinks.forEach(function(link, index) {
+          console.log('Product link ' + (index + 1) + ':', link.href, 'Classes:', link.className);
+        });
+        
+        if (productLinks.length > 0) {
+          productLinks.forEach(function(link) {
+            // Remove any existing listeners to avoid duplicates
+            link.removeEventListener('click', handleProductTypeVariableClick);
+            link.addEventListener('click', handleProductTypeVariableClick);
+          });
+          console.log('Product type variable click handlers attached to ' + productLinks.length + ' links');
+        } else {
+          console.log('No product_type_variable links found');
+        }
+        
+        // Also handle any dynamically added links
+        var productObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newProductLinks = [];
+                
+                // Check if the node itself is a product_type_variable link
+                if (node.classList && node.classList.contains('product_type_variable') && node.tagName === 'A') {
+                  newProductLinks.push(node);
+                }
+                
+                // Check for product_type_variable children
+                if (node.querySelectorAll) {
+                  var children = node.querySelectorAll('a.product_type_variable');
+                  newProductLinks = newProductLinks.concat(Array.from(children));
+                }
+                
+                newProductLinks.forEach(function(link) {
+                  link.removeEventListener('click', handleProductTypeVariableClick);
+                  link.addEventListener('click', handleProductTypeVariableClick);
+                  console.log('Dynamic product_type_variable link added:', link.href);
+                });
+              }
+            });
+          });
+        });
+        
+        productObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
+      // Separate function for handling product_type_variable clicks
+      function handleProductTypeVariableClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        var href = this.href || this.getAttribute('href');
+        console.log('Product type variable clicked - navigating to WebLink with URL:', href);
+        
+        // Send message to React Native app to navigate to WebLink screen with URL
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'navigate',
+            screen: 'weblink',
+            url: href
+          }));
+        }
+      }
+      
+      // Function to handle woocommerce-LoopProduct-link navigation
+      function handleWooCommerceLinkNavigation() {
+        console.log('Starting woocommerce-LoopProduct-link detection...');
+        
+        // Find ALL anchors with woocommerce-LoopProduct-link class
+        var wooCommerceLinks = document.querySelectorAll('a.woocommerce-LoopProduct-link');
+        console.log('Found ' + wooCommerceLinks.length + ' woocommerce-LoopProduct-link links initially');
+        
+        // Log all found links for debugging
+        wooCommerceLinks.forEach(function(link, index) {
+          console.log('WooCommerce link ' + (index + 1) + ':', link.href, 'Classes:', link.className);
+        });
+        
+        if (wooCommerceLinks.length > 0) {
+          wooCommerceLinks.forEach(function(link) {
+            // Remove any existing listeners to avoid duplicates
+            link.removeEventListener('click', handleWooCommerceLinkClick);
+            link.addEventListener('click', handleWooCommerceLinkClick);
+          });
+          console.log('WooCommerce link click handlers attached to ' + wooCommerceLinks.length + ' links');
+        } else {
+          console.log('No woocommerce-LoopProduct-link links found');
+        }
+        
+        // Also handle any dynamically added links
+        var wooCommerceObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                var newWooCommerceLinks = [];
+                
+                // Check if the node itself is a woocommerce-LoopProduct-link
+                if (node.classList && node.classList.contains('woocommerce-LoopProduct-link') && node.tagName === 'A') {
+                  newWooCommerceLinks.push(node);
+                }
+                
+                // Check for woocommerce-LoopProduct-link children
+                if (node.querySelectorAll) {
+                  var children = node.querySelectorAll('a.woocommerce-LoopProduct-link');
+                  newWooCommerceLinks = newWooCommerceLinks.concat(Array.from(children));
+                }
+                
+                newWooCommerceLinks.forEach(function(link) {
+                  link.removeEventListener('click', handleWooCommerceLinkClick);
+                  link.addEventListener('click', handleWooCommerceLinkClick);
+                  console.log('Dynamic woocommerce-LoopProduct-link added:', link.href);
+                });
+              }
+            });
+          });
+        });
+        
+        wooCommerceObserver.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+      
+      // Separate function for handling woocommerce-LoopProduct-link clicks
+      function handleWooCommerceLinkClick(e) {
+        e.preventDefault(); // Prevent default link behavior
+        e.stopPropagation(); // Stop event bubbling
+        
+        var href = this.href || this.getAttribute('href');
+        console.log('WooCommerce link clicked - navigating to WebLink with URL:', href);
+        
+        // Send message to React Native app to navigate to WebLink screen with URL
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'navigate',
+            screen: 'weblink',
+            url: href
+          }));
+        }
+      }
+      
       // Run functions immediately and on DOM ready
       disableLongPressPreview();
       handleButtonNavigation();
+      handleElementorButtonNavigation();
+      handleProductTypeVariableNavigation();
+      handleWooCommerceLinkNavigation();
       
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
           disableLongPressPreview();
           handleButtonNavigation();
+          handleElementorButtonNavigation();
+          handleProductTypeVariableNavigation();
+          handleWooCommerceLinkNavigation();
         });
       }
       
       window.addEventListener('load', function() {
         disableLongPressPreview();
         handleButtonNavigation();
+        handleElementorButtonNavigation();
+        handleProductTypeVariableNavigation();
+        handleWooCommerceLinkNavigation();
       });
       
       // Also run detection periodically to catch late-loading links
       var detectionInterval = setInterval(function() {
         handleButtonNavigation();
+        handleElementorButtonNavigation();
+        handleProductTypeVariableNavigation();
+        handleWooCommerceLinkNavigation();
       }, 2000); // Check every 2 seconds
       
       // Stop checking after 30 seconds
       setTimeout(function() {
         clearInterval(detectionInterval);
-        console.log('Stopped periodic shop link detection');
+        console.log('Stopped periodic link detection');
       }, 30000);
       
       console.log('Header hiding script initialized. Initially hidden: ' + initialHidden + ' elements');
@@ -505,6 +761,13 @@ const Home_Screen = ({ url = 'https://highestpeakclothingandapparel.com/' }: Hom
                     break;
                   case 'home':
                     navigation.navigate('Home' as never);
+                    break;
+                  case 'weblink':
+                    if (data.url) {
+                      (navigation.navigate as any)('WebLink', { url: data.url });
+                    } else {
+                      console.log('WebLink navigation requires a URL parameter');
+                    }
                     break;
                   default:
                     console.log('Unknown screen:', data.screen);

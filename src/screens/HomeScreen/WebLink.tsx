@@ -167,6 +167,19 @@ const WebLink = () => {
           dataIdDiv6.style.setProperty('padding', '0', 'important');
         }
         
+        var dataIdDiv7 = document.querySelector('[data-id="382662a4"]');
+        if (dataIdDiv7) {
+          dataIdDiv7.style.setProperty('display', 'none', 'important');
+          dataIdDiv7.style.setProperty('visibility', 'hidden', 'important');
+          dataIdDiv7.style.setProperty('opacity', '0', 'important');
+          dataIdDiv7.style.setProperty('height', '0', 'important');
+          dataIdDiv7.style.setProperty('min-height', '0', 'important');
+          dataIdDiv7.style.setProperty('max-height', '0', 'important');
+          dataIdDiv7.style.setProperty('overflow', 'hidden', 'important');
+          dataIdDiv7.style.setProperty('margin', '0', 'important');
+          dataIdDiv7.style.setProperty('padding', '0', 'important');
+        }
+        
         var hiddenCount = 0;
         
         selectors.forEach(function(selector) {

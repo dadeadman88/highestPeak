@@ -103,21 +103,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    top: -50
   },
   imageContainer: {
-    marginTop: 40,
-    marginBottom: 20,
+    marginBottom: 10
   },
   imageSmall: {
-    width: width * 0.5,
-    height: width * 0.5,
+    width: width * 0.4,
+    height: width * 0.4,
     borderRadius: 12,
     marginBottom: -40,
     resizeMode: "contain",
   },
   imageLarge: {
-    width: width * 0.7,
-    height: width * 0.7,
+    width: width * 0.6,
+    height: width * 0.6,
     borderRadius: 12,
     resizeMode: "contain",
     alignSelf: "center",
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   circularButton: {
     position: "absolute",
-    bottom: 40,
+    bottom: 20,
     right: 40,
     backgroundColor: "#5a3e2b",
     width: 60,
